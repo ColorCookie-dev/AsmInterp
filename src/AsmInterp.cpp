@@ -39,11 +39,11 @@ struct Token {
 };
 
 #define is_potential_identifier_start(c)                                       \
-    ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_' || (c >= 128))
+    ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_')
 
 #define is_potential_identifier_char(c)                                        \
     ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||                       \
-     (c >= '0' && c <= '9') || c == '_' || (c >= 128))
+     (c >= '0' && c <= '9') || c == '_')
 
 static auto tokenizer(const std::string &line, unsigned int lineno)
     -> std::vector<Token> {
@@ -447,10 +447,16 @@ auto parser(std::vector<Token> &tokens, unsigned int lineno) -> Instruction {
     }
 }
 
-// --------- End Lexer
+// --------- End Parser
 
-auto assembler(const std::vector<std::string> &program)
-    -> std::unordered_map<std::string, int> {
+auto assembler_interpreter(const std::string &program_source) -> std::string {
+
+    std::vector<std::string> program;
+    std::stringstream program_source_stream(program_source);
+    std::string line;
+    while (std::getline(program_source_stream, line, '\n'))
+        program.push_back(std::move(line));
+
     // Registers
     std::unordered_map<std::string, int> regs;
     std::unordered_map<std::string, size_t> label_defs;
@@ -473,7 +479,7 @@ auto assembler(const std::vector<std::string> &program)
             PARSE_ERR(lineno, "Unknown register " + label + " accessed.");
     };
 
-    auto parse_val = [&get_reg, &lineno](Parameter paramemter) -> int {
+    auto parse_val = [&get_reg](Parameter paramemter) -> int {
         return (paramemter.token_type == TokenType::NUMBER)
                    ? std::stoi(paramemter.token_data)
                    : get_reg(paramemter.token_data);
@@ -482,11 +488,6 @@ auto assembler(const std::vector<std::string> &program)
     std::vector<Instruction> program_ast;
     for (auto it = program.begin(); it != program.end(); it++) {
         std::vector<Token> tokens(tokenizer(*it, lineno));
-
-        // for (auto tok : tokens) {
-        // std::cout << tok.token_data << '\n';
-        //}
-        // std::cout << '\n';
 
         if (!tokens.size())
             continue;
@@ -511,6 +512,7 @@ auto assembler(const std::vector<std::string> &program)
     std::stack<size_t> stack; // Currently only for pushing return locations
     int cmp_test = 0;
     bool program_ended = false;
+    std::string output;
 
     // The instructions runs here
     for (auto it = program_ast.begin();
@@ -610,11 +612,10 @@ auto assembler(const std::vector<std::string> &program)
         case InstructionType::MSG:
             for (auto &paramemter : it->paramemters) {
                 if (paramemter.token_type == TokenType::STRING)
-                    std::cout << paramemter.token_data;
+                    output += paramemter.token_data;
                 else
-                    std::cout << parse_val(paramemter);
+                    output += std::to_string(parse_val(paramemter));
             }
-			std::cout << '\n';
             break;
 
         case InstructionType::END:
@@ -626,5 +627,8 @@ auto assembler(const std::vector<std::string> &program)
         }
     }
 
-    return regs;
+    if (program_ended)
+        return output;
+    else
+        return "-1";
 }
