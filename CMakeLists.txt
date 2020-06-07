@@ -9,6 +9,9 @@ set(src_dir "${CMAKE_SOURCE_DIR}/src")
 
 add_compile_options("-Wall" "-Wpedantic" "-Wextra" "-O3")
 
-file(GLOB src_files "${src_dir}/*.cpp")
-
-add_executable(AsmInterp "${src_files}")
+add_executable(AsmInterp
+	"${src_dir}/main.cpp"
+	"${src_dir}/AsmInterp.cpp"
+	"${src_dir}/Tokenizer.cpp"
+	"${src_dir}/Parser.cpp"
+)
