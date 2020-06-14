@@ -1,63 +1,93 @@
 #include "AsmInterp.h"
 #include "Errors.h"
-#include "Tokenizer.h"
 #include "Parser.h"
+#include "Tokenizer.h"
 
 #include <algorithm>
+#include <charconv>
 #include <iostream>
 #include <iterator>
 #include <sstream>
 #include <stack>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 #include <utility>
 #include <vector>
 
-auto assembler_interpreter(const std::string &program_source) -> std::string {
+auto assembler_interpreter(const std::string_view program_source)
+    -> std::string {
 
-    std::vector<std::string> program;
-    std::stringstream program_source_stream(program_source);
-    std::string line;
-    while (std::getline(program_source_stream, line, '\n'))
-        program.push_back(std::move(line));
+    std::vector<std::string_view> program;
+
+    // Splitting strings into lines
+    for (auto search =
+                  std::find(begin(program_source), end(program_source), '\n'),
+              last_iter = begin(program_source);
+         last_iter != end(program_source);
+         last_iter =
+             (search == end(program_source) ? search : std::next(search)),
+              search = std::find(last_iter, end(program_source), '\n')) {
+        program.push_back(program_source.substr(
+            last_iter - begin(program_source), search - last_iter));
+    }
 
     // Registers
-    std::unordered_map<std::string, int> regs;
-    std::unordered_map<std::string, size_t> label_defs;
+    std::unordered_map<std::string_view, int> regs;
+    std::unordered_map<std::string_view, size_t> label_defs;
 
     unsigned int lineno = 0;
 
     // Helper lambdas
-    auto get_reg = [&regs, &lineno](const std::string &reg) -> int & {
+    const auto get_reg = [&regs, &lineno](std::string_view reg) -> int & {
         if (auto search = regs.find(reg); search != regs.end()) {
             return regs[reg];
-        } else
-            PARSE_ERR(lineno, "Unknown register " + reg + " accessed.");
+        }
+
+        PARSE_ERR(lineno,
+                  "Unknown register " + std::string(reg) + " accessed.");
     };
 
-    auto get_label = [&label_defs,
-                      &lineno](const std::string &label) -> size_t & {
+    const auto get_label = [&label_defs,
+                            &lineno](std::string_view label) -> size_t & {
         if (auto search = label_defs.find(label); search != label_defs.end()) {
             return label_defs[label];
-        } else
-            PARSE_ERR(lineno, "Unknown register " + label + " accessed.");
+        }
+
+        PARSE_ERR(lineno,
+                  "Unknown register " + std::string(label) + " accessed.");
     };
 
-    auto parse_val = [&get_reg](Parameter paramemter) -> int {
-        return (paramemter.token_type == TokenType::NUMBER)
-                   ? std::stoi(paramemter.token_data)
-                   : get_reg(paramemter.token_data);
+    const auto parse_val = [&lineno,
+                            &get_reg](const Parameter &paramemter) -> int {
+        int parsed_val = 0;
+        const auto tok_data = paramemter.token_data;
+
+        if (paramemter.token_type == TokenType::NUMBER) {
+            if (const auto [p, ec] = std::from_chars(
+                    tok_data.data(), tok_data.data() + tok_data.size(),
+                    parsed_val);
+                ec == std::errc()) {
+                return parsed_val;
+            }
+            PARSE_ERR(lineno, "Unable to convert string to integer!");
+        }
+
+        return get_reg(paramemter.token_data);
     };
 
     std::vector<Instruction> program_ast;
     for (auto it = program.begin(); it != program.end(); it++) {
         std::vector<Token> tokens(tokenizer(*it, lineno));
 
-        if (!tokens.size())
+        if (tokens.empty()) {
             continue;
+        }
 
         lineno = it - program.begin() + 1;
-        auto instruction = parser(tokens, lineno);
+
+        auto instruction =
+            parser(tokens, lineno); // For moving purposes it's not const
 
         // Label definitions
         if (instruction.ins_type == InstructionType::LABEL) {
@@ -112,8 +142,12 @@ auto assembler_interpreter(const std::string &program_source) -> std::string {
             break;
 
         case InstructionType::DIV:
-            get_reg(it->paramemters[0].token_data) /=
-                parse_val(it->paramemters[1]);
+            if (auto parsed_val = parse_val(it->paramemters[1]);
+                parsed_val == 0) {
+                PARSE_ERR(lineno, "Division by Zero");
+            } else {
+                get_reg(it->paramemters[0].token_data) /= parsed_val;
+            }
             break;
 
         case InstructionType::CMP:
@@ -126,39 +160,45 @@ auto assembler_interpreter(const std::string &program_source) -> std::string {
             break;
 
         case InstructionType::JNE:
-            if (cmp_test != 0)
+            if (cmp_test != 0) {
                 it = program_ast.begin() +
                      get_label(it->paramemters[0].token_data);
+            }
             break;
 
         case InstructionType::JE:
-            if (cmp_test == 0)
+            if (cmp_test == 0) {
                 it = program_ast.begin() +
                      get_label(it->paramemters[0].token_data);
+            }
             break;
 
         case InstructionType::JGE:
-            if (cmp_test >= 0)
+            if (cmp_test >= 0) {
                 it = program_ast.begin() +
                      get_label(it->paramemters[0].token_data);
+            }
             break;
 
         case InstructionType::JG:
-            if (cmp_test > 0)
+            if (cmp_test > 0) {
                 it = program_ast.begin() +
                      get_label(it->paramemters[0].token_data);
+            }
             break;
 
         case InstructionType::JLE:
-            if (cmp_test <= 0)
+            if (cmp_test <= 0) {
                 it = program_ast.begin() +
                      get_label(it->paramemters[0].token_data);
+            }
             break;
 
         case InstructionType::JL:
-            if (cmp_test < 0)
+            if (cmp_test < 0) {
                 it = program_ast.begin() +
                      get_label(it->paramemters[0].token_data);
+            }
             break;
 
         case InstructionType::CALL:
@@ -167,18 +207,20 @@ auto assembler_interpreter(const std::string &program_source) -> std::string {
             break;
 
         case InstructionType::RET:
-            if (stack.empty())
+            if (stack.empty()) {
                 PARSE_ERR(lineno, "Nowhere to return!");
+            }
             it = program_ast.begin() + stack.top();
             stack.pop();
             break;
 
         case InstructionType::MSG:
             for (auto &paramemter : it->paramemters) {
-                if (paramemter.token_type == TokenType::STRING)
+                if (paramemter.token_type == TokenType::STRING) {
                     output += paramemter.token_data;
-                else
+                } else {
                     output += std::to_string(parse_val(paramemter));
+                }
             }
             break;
 
@@ -191,8 +233,5 @@ auto assembler_interpreter(const std::string &program_source) -> std::string {
         }
     }
 
-    if (program_ended)
-        return output;
-    else
-        return "-1";
+    return program_ended ? output : "-1";
 }

@@ -31,7 +31,7 @@ enum class InstructionType {
 using Parameter = Token;
 
 struct Instruction {
-    const InstructionType ins_type;
+    InstructionType ins_type;
     std::vector<Parameter> paramemters;
 
     Instruction(InstructionType type) : ins_type(type) {}
@@ -49,4 +49,5 @@ struct Instruction {
         : ins_type(other.ins_type), paramemters(std::move(other.paramemters)) {}
 };
 
-auto parser(std::vector<Token> &tokens, unsigned int lineno) -> Instruction;
+auto parser(std::vector<Token> &tokens, const unsigned int lineno)
+    -> Instruction;

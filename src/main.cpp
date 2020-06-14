@@ -3,43 +3,45 @@
 #include <string>
 #include <vector>
 
-int main() {
-    // std::vector<std::string> program{"mov a, -5", "inc a",     "dec a",
-    //"inc a",     "jnz a, -1", "inc a"};
-    std::string program =
-        "; My first program\n"
-        "mov  a, 5\n"
-        "inc  a\n"
-        "call function\n"
-        "msg  '(5+1)/2 = ', a    ; output message\n"
-        "end\n"
-        "\n"
-        "function:\n"
-        "	div  a, 2\n"
-        "	ret\n";
+auto main() -> int {
+    const std::string_view program =
+R"PROGEND(
+; My first program
+mov  a, 5
+inc  a
+call function
+msg  '(5+1)/2 = ', a    ; output message
+end
 
-    std::string program2 =
-		"mov a, 2 ; value1\n"
-		"mov b, 10 ; value2\n"
-		"mov c, a ; temp1\n"
-		"mov d, b ; temp2\n"
-		"call proc_func\n"
-		"call print\n"
-		"end\n"
-		"\n"
-		"proc_func:\n"
-		"cmp d, 1\n"
-		"je continue\n"
-		"mul c, a\n"
-		"dec d\n"
-		"call proc_func\n"
-		"\n"
-		"continue:\n"
-		"ret\n"
-		"\n"
-		"print:\n"
-		"msg a, '^', b, ' = ', c\n"
-		"ret\n";
+function:
+	div  a, 2
+	ret
+)PROGEND";
+
+    const std::string_view program2 =
+R"PROGEND(
+mov a, 2 ; value1
+mov b, 10 ; value2
+mov c, a ; temp1
+mov d, b ; temp2
+call proc_func
+call print
+end
+
+proc_func:
+cmp d, 1
+je continue
+mul c, a
+dec d
+call proc_func
+
+continue:
+ret
+
+print:
+msg a, '^', b, ' = ', c
+ret
+)PROGEND";
 
 	std::cout << assembler_interpreter(program) << '\n';
 	std::cout << assembler_interpreter(program2) << '\n';

@@ -1,9 +1,10 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.7.2)
 
 project(AsmInterp)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
+set(CMAKE_CXX_CLANG_TIDY "clang-tidy;-checks=*,-fuchsia-*")
 
 set(src_dir "${CMAKE_SOURCE_DIR}/src")
 
