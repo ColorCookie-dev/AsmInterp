@@ -49,5 +49,5 @@ struct Instruction {
         : ins_type(other.ins_type), paramemters(std::move(other.paramemters)) {}
 };
 
-auto parser(std::vector<Token> &tokens, const unsigned int lineno)
+auto parser(std::vector<Token> &tokens, const unsigned int &lineno)
     -> Instruction;

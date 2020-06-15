@@ -15,7 +15,7 @@
 #include <utility>
 #include <vector>
 
-auto assembler_interpreter(const std::string_view program_source)
+auto assembler_interpreter(const std::string_view &program_source)
     -> std::string {
 
     std::vector<std::string_view> program;
@@ -39,7 +39,7 @@ auto assembler_interpreter(const std::string_view program_source)
     unsigned int lineno = 0;
 
     // Helper lambdas
-    const auto get_reg = [&regs, &lineno](std::string_view reg) -> int & {
+    const auto get_reg = [&regs, &lineno](const std::string_view &reg) -> int & {
         if (auto search = regs.find(reg); search != regs.end()) {
             return regs[reg];
         }
@@ -49,7 +49,7 @@ auto assembler_interpreter(const std::string_view program_source)
     };
 
     const auto get_label = [&label_defs,
-                            &lineno](std::string_view label) -> size_t & {
+                            &lineno](const std::string_view &label) -> size_t & {
         if (auto search = label_defs.find(label); search != label_defs.end()) {
             return label_defs[label];
         }

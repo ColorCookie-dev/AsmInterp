@@ -10,7 +10,7 @@ constexpr auto is_potential_identifier_char(const unsigned char c) -> bool {
             (c >= '0' && c <= '9') || c == '_');
 }
 
-auto tokenizer(const std::string_view line, const unsigned int lineno)
+auto tokenizer(const std::string_view &line, const unsigned int &lineno)
     -> std::vector<Token> {
     std::vector<Token> tokens;
 

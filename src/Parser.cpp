@@ -6,7 +6,7 @@
 
 static auto parse_parameters(std::vector<Token>::iterator start_it,
                              std::vector<Token>::iterator end_it,
-                             const unsigned int lineno)
+                             const unsigned int &lineno)
     -> std::vector<Parameter> {
     std::vector<Parameter> paramemters;
 
@@ -37,7 +37,7 @@ static auto parse_parameters(std::vector<Token>::iterator start_it,
     return paramemters;
 }
 
-auto parser(std::vector<Token> &tokens, const unsigned int lineno)
+auto parser(std::vector<Token> &tokens, const unsigned int &lineno)
     -> Instruction {
     if (tokens.empty()) {
         PARSE_ERR(lineno, "Nothing to parse! This error shouldn't happen, "
