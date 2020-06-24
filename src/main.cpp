@@ -4,7 +4,7 @@
 #include <vector>
 
 auto main() -> int {
-    const std::string_view program =
+    constexpr const std::string_view program =
 R"PROGEND(
 ; My first program
 mov  a, 5
@@ -18,7 +18,7 @@ function:
 	ret
 )PROGEND";
 
-    const std::string_view program2 =
+    constexpr const std::string_view program2 =
 R"PROGEND(
 mov a, 2 ; value1
 mov b, 10 ; value2

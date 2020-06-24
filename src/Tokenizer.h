@@ -11,15 +11,15 @@ struct Token {
     TokenType token_type = TokenType::NONE;
     std::string_view token_data;
 
-    Token() = default;
+    Token() noexcept = default;
 
-    Token(TokenType type, std::string_view data)
+    Token(TokenType type, std::string_view data) noexcept
         : token_type(type), token_data(data) {}
 
-    Token(const Token &other)
+    Token(const Token &other) noexcept
         : token_type(other.token_type), token_data(other.token_data) {}
 
-    Token &operator=(const Token &other) {
+    Token &operator=(const Token &other) noexcept {
         token_type = other.token_type;
         token_data = other.token_data;
         return *this;

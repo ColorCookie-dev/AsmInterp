@@ -34,18 +34,18 @@ struct Instruction {
     InstructionType ins_type;
     std::vector<Parameter> paramemters;
 
-    Instruction(InstructionType type) : ins_type(type) {}
+    Instruction(InstructionType type) noexcept : ins_type(type) {}
 
-    Instruction(InstructionType type, const std::vector<Parameter> &paramemters)
+    Instruction(InstructionType type, const std::vector<Parameter> &paramemters) noexcept
         : ins_type(type), paramemters(paramemters) {}
 
-    Instruction(InstructionType type, std::vector<Parameter> &&paramemters)
+    Instruction(InstructionType type, std::vector<Parameter> &&paramemters) noexcept
         : ins_type(type), paramemters(std::move(paramemters)) {}
 
-    Instruction(const Instruction &other)
+    Instruction(const Instruction &other) noexcept
         : ins_type(other.ins_type), paramemters(other.paramemters) {}
 
-    Instruction(Instruction &&other)
+    Instruction(Instruction &&other) noexcept
         : ins_type(other.ins_type), paramemters(std::move(other.paramemters)) {}
 };
 
